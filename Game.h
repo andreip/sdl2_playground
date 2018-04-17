@@ -32,6 +32,6 @@ private:
   constexpr static int SCREEN_HEIGHT = 480;
 
   // slot machine box
-  constexpr static int SLOT_MACHINE_BOX_HEIGHT = 200;
-  constexpr static int SLOT_MACHINE_BOX_WIDTH = SCREEN_WIDTH - 100;
+  constexpr static int SLOT_MACHINE_HEIGHT = 200;
+  constexpr static int SLOT_MACHINE_WIDTH = SCREEN_WIDTH - 100;
 };

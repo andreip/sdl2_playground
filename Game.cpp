@@ -28,7 +28,13 @@ void Game::init() {
     if (!(IMG_Init(imgFlags) & imgFlags))
       throw GameException("SDL_image could not initialize", IMG_GetError());
 
-    mSlotMachine = new SlotMachine(mRenderer);
+    mSlotMachine = new SlotMachine(
+      mRenderer,
+      (SCREEN_WIDTH - SLOT_MACHINE_WIDTH) / 2,
+      (SCREEN_HEIGHT - SLOT_MACHINE_HEIGHT) / 2,
+      SLOT_MACHINE_WIDTH,
+      SLOT_MACHINE_HEIGHT
+    );
 
   } catch (GameException &e) {
     free();
@@ -60,7 +66,7 @@ void Game::loop() {
         const Uint8 *state = SDL_GetKeyboardState(nullptr);
         if (state[SDL_SCANCODE_SPACE]) {
           std::cout << "pressed spacebar key\n";
-          mSlotMachine->run();
+          mSlotMachine->start();
         }
       }
     }
@@ -68,18 +74,14 @@ void Game::loop() {
     SDL_SetRenderDrawColor(mRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(mRenderer);
 
-    // render slot machine with its symbols.
-    mSlotMachine->render(
-      (SCREEN_WIDTH - SLOT_MACHINE_BOX_WIDTH) / 2,
-      (SCREEN_HEIGHT - SLOT_MACHINE_BOX_HEIGHT) / 2,
-      SLOT_MACHINE_BOX_WIDTH,
-      SLOT_MACHINE_BOX_HEIGHT
-    );
+    // render slot machine display.
+    if (mSlotMachine->running())
+      mSlotMachine->advance();
+    mSlotMachine->render();
 
     // draw surroundings of the slot machine.
     SDL_SetRenderDrawColor(mRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-    int quadHeight = (SCREEN_HEIGHT - SLOT_MACHINE_BOX_HEIGHT) / 2;
-    //int quadWidth = (SCREEN_WIDTH - SLOT
+    int quadHeight = (SCREEN_HEIGHT - SLOT_MACHINE_HEIGHT) / 2;
     SDL_Rect topQuad {0, 0, SCREEN_WIDTH, quadHeight};
     SDL_RenderFillRect(mRenderer, &topQuad);
     SDL_Rect bottomQuad {0, SCREEN_HEIGHT - quadHeight, SCREEN_WIDTH, quadHeight};
