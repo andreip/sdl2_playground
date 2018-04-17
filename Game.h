@@ -36,7 +36,9 @@ private:
   // sprites data
   static const char *SPRITES_PATH;
   constexpr static int SPRITES_TOTAL_SYMBOLS = 8;
+  constexpr static int SPRITES_COLS = 3;
   SDL_Rect mSpriteRects[SPRITES_TOTAL_SYMBOLS];
+  SDL_Rect mSpriteCols[SPRITES_COLS][SPRITES_TOTAL_SYMBOLS];
   constexpr static int SPRITE_WIDTH = 111;
   constexpr static int SPRITE_HEIGHT = 111;
 

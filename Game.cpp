@@ -1,3 +1,7 @@
+#include <algorithm>
+#include <random>
+#include <vector>
+
 #include "Game.h"
 #include "utils.h"
 
@@ -69,21 +73,23 @@ void Game::loop() {
     SDL_RenderClear(mRenderer);
 
     // draw slot machine symbols
+    int col = -1;
     for (double colRatio : {0.166, 0.5, 0.833}) {
+      ++col;
       int x = colRatio * SCREEN_WIDTH - SPRITE_WIDTH / 2;
 
       // start from above row and go upwards.
       int y = row - SPRITE_HEIGHT;
       int i = SPRITES_TOTAL_SYMBOLS;
       while (y >= -SPRITE_HEIGHT) {
-        mTextureSprites->render(x, y, &mSpriteRects[--i]);
+        mTextureSprites->render(x, y, &mSpriteCols[col][--i]);
         y -= SPRITE_HEIGHT;
       }
 
       // draw below the row.
       y = row, i = -1;
       while (y < SCREEN_HEIGHT) {
-        mTextureSprites->render(x, y, &mSpriteRects[++i]);
+        mTextureSprites->render(x, y, &mSpriteCols[col][++i]);
         y += SPRITE_HEIGHT;
       }
     }
@@ -105,6 +111,18 @@ void Game::loop() {
 void Game::loadMedia() {
   mTextureSprites = Wrapped_SDL_Texture::fromPath(SPRITES_PATH, mRenderer);
 
-  for (int i = 0; i < SPRITES_TOTAL_SYMBOLS; ++i)
-    mSpriteRects[i] = {i * SPRITE_WIDTH, 0, SPRITE_WIDTH, SPRITE_HEIGHT};
+  // get all symbols in vector
+  std::vector<SDL_Rect> v(SPRITES_TOTAL_SYMBOLS);
+  for (int i = 0; i < SPRITES_TOTAL_SYMBOLS; ++i) {
+    v[i] = {i * SPRITE_WIDTH, 0, SPRITE_WIDTH, SPRITE_HEIGHT};
+  }
+  // init random generator
+  std::random_device rd;
+  std::mt19937 g(rd());
+  // shuffle it for every slot machine column.
+  for (int i = 0; i < SPRITES_COLS; ++i) {
+    std::shuffle(v.begin(), v.end(), g);
+    for (int j = 0; j < v.size(); ++j)
+      mSpriteCols[i][j] = v[j];
+  }
 }
