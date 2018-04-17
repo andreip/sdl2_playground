@@ -1,11 +1,14 @@
 #include <random>
 #include <iostream>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
 
 #include "SlotMachine.h"
+#include "utils.h"
 
-const char* SlotMachine::SPRITES_PATH = "img/slot_machine_sprites.png";
+const char* SlotMachine::SPRITES_PATH = "data/slot_machine_sprites.png";
 const double SlotMachine::COLUMN_RATIOS[COLUMNS] = {0.166, 0.5, 0.833};
+const char* SlotMachine::SOUND_PATH = "data/low.wav";
 
 SlotMachine::SlotMachine(SDL_Renderer *renderer,
                          int x, int y, int width, int height)
@@ -26,6 +29,13 @@ SlotMachine::SlotMachine(SDL_Renderer *renderer,
     mRunning[i] = false;
     mRows[i] = 0;
   }
+
+  mSounds[SOUND_COLUMN_STOP] = Mix_LoadWAV(SOUND_PATH);
+  if (!mSounds[SOUND_COLUMN_STOP])
+    throw GameException("Couldn't load image", SOUND_PATH);
+  mSounds[SOUND_WINNER] = Mix_LoadWAV("data/beat.wav");
+  if (!mSounds[SOUND_WINNER])
+    throw GameException("Couldn't load image", "data/beat.wav");
 }
 
 SlotMachine::~SlotMachine()
@@ -33,6 +43,10 @@ SlotMachine::~SlotMachine()
   delete mTextureSprites;
   mTextureSprites = nullptr;
   mRenderer = nullptr;
+  for (int i = 0; i < SOUND_TOTAL; ++i) {
+    Mix_FreeChunk(mSounds[i]);
+    mSounds[i] = nullptr;
+  }
 }
 
 void SlotMachine::render()
@@ -83,8 +97,10 @@ void SlotMachine::start() {
   if (running())
     return;
 
-  for (int i = 0; i < COLUMNS; ++i)
+  for (int i = 0; i < COLUMNS; ++i) {
     mRunning[i] = true;
+    mColumnStoppedAndAlligned[i] = false;
+  }
 }
 
 double SlotMachine::getRandomDouble() {
@@ -108,9 +124,16 @@ bool SlotMachine::running() {
 }
 
 void SlotMachine::advance() {
-  for (int i = 0; i < COLUMNS; ++i)
-    if (running(i))
+  for (int i = 0; i < COLUMNS; ++i) {
+    if (running(i)) {
       mRows[i] = (mRows[i] + SPRITES_TOTAL_SYMBOLS) % (SPRITE_HEIGHT * SPRITES_TOTAL_SYMBOLS);
+
+      // after this advancement, check if it's still running and if it's
+      // not, mark it as stopped and alligned.
+      if (!running(i))
+        columnStoppedAndAlligned(i);
+    }
+  }
 }
 
 bool SlotMachine::atLeastOneRunning() {
@@ -121,12 +144,12 @@ bool SlotMachine::atLeastOneRunning() {
 }
 
 bool SlotMachine::running(int column) {
-  // 112 is "adjusted to work here" since we're incrementing each row
-  // by 8, and 112 is divisible and very close to 111, which is the
+  // SPRITE_ROWOFFSET is "adjusted to work here" since we're incrementing each
+  // row by 8, and 112 is divisible and very close to 111, which is the
   // vertical length of each sprite. So if this happens (because
   // a sprite is vertically alligned at the beginning), it means a
   // sprite is vertically alligned on the screen and we can stop.
-  bool notVerticallyAllignedSprite = mRows[column] % 112 != 0;
+  bool notVerticallyAllignedSprite = mRows[column] % SPRITE_ROWOFFSET != 0;
   // run until it's vertically aligned, even if it's stopped.
   return mRunning[column] || notVerticallyAllignedSprite;
 }
@@ -141,4 +164,35 @@ void SlotMachine::stopLeftmostSpin() {
       return;
     }
   }
+}
+
+int SlotMachine::getSpriteOnDisplay(int column) {
+  if (running(column))
+    throw GameException("Game still running", "");
+
+  return mRows[column] / SPRITE_ROWOFFSET;
+}
+
+void SlotMachine::columnStoppedAndAlligned(int column) {
+  if (mColumnStoppedAndAlligned[column])
+    return;
+
+  mColumnStoppedAndAlligned[column] = true;
+  std::cout << "Column " << column << " stopped and alligned on: " << getSpriteOnDisplay(column) << "\n";
+
+  // play column stop signal.
+  Mix_PlayChannel(-1, mSounds[SOUND_COLUMN_STOP], 0);
+  // if it's a winner, play winner signal.
+  if (column == COLUMNS - 1 && winner())
+    Mix_PlayChannel(-1, mSounds[SOUND_WINNER], 0);
+}
+
+bool SlotMachine::winner() {
+  if (running())
+    return false;
+
+  for (int i = 1; i < COLUMNS; ++i)
+    if (mRows[0] != mRows[i])
+      return false;
+  return true;
 }

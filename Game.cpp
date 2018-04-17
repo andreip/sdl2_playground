@@ -1,11 +1,13 @@
 #include <random>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_mixer.h>
 
 #include "Game.h"
 #include "utils.h"
 
 void Game::init() {
   try {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
       throw GameException("Error initializing sdl", SDL_GetError());
 
     mWindow = SDL_CreateWindow("SlotMachine",
@@ -27,6 +29,10 @@ void Game::init() {
     // need to initialize SDL images for PNG images.
     if (!(IMG_Init(imgFlags) & imgFlags))
       throw GameException("SDL_image could not initialize", IMG_GetError());
+
+    // Initialize SDL_mixer
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
+      throw GameException("SDL_mixer could not initialize", Mix_GetError());
 
     mSlotMachine = new SlotMachine(
       mRenderer,
@@ -50,6 +56,7 @@ void Game::free() {
   SDL_DestroyWindow(mWindow);
   mWindow = nullptr;
   IMG_Quit();
+  Mix_Quit();
   SDL_Quit();
 }
 

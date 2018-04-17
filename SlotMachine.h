@@ -2,8 +2,15 @@
 
 #include <random>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
 
 #include "Texture.h"
+
+enum Sounds {
+  SOUND_COLUMN_STOP,
+  SOUND_WINNER,
+  SOUND_TOTAL,
+};
 
 class SlotMachine {
 public:
@@ -20,6 +27,9 @@ private:
   bool atLeastOneRunning();
   bool running(int column);
   void stopLeftmostSpin();
+  int getSpriteOnDisplay(int column);
+  void columnStoppedAndAlligned(int column);
+  bool winner();
 private:
   static constexpr int COLUMNS = 3;
   Wrapped_SDL_Texture *mTextureSprites;
@@ -27,7 +37,15 @@ private:
   int mX, mY, mWidth, mHeight;
   // keep account of where we draw each column.
   int mRows[COLUMNS];
+  // if column should be advanced; but column still is advanced up
+  // until a stripe gets vertically alligned on the display.
   bool mRunning[COLUMNS];
+  // marks when a column is not advanced anymore and is alligned.
+  bool mColumnStoppedAndAlligned[COLUMNS];
+
+  // sound related
+  Mix_Chunk *mSounds[SOUND_TOTAL];
+  static const char *SOUND_PATH;
 
   static const double COLUMN_RATIOS[COLUMNS];
   // sprites data
@@ -36,5 +54,6 @@ private:
   SDL_Rect mSpriteRects[SPRITES_TOTAL_SYMBOLS];
   static constexpr int SPRITE_WIDTH = 111;
   static constexpr int SPRITE_HEIGHT = 111;
+  static constexpr int SPRITE_ROWOFFSET = 112;
 
 };
