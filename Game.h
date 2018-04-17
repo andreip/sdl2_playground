@@ -1,21 +1,16 @@
 #pragma once
-#include <exception>
 #include <iostream>
-#include <memory>
-#include <sstream>
-#include <string>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-#include "Texture.h"
+#include "SlotMachine.h"
 
 class Game {
 public:
   // initializes SDL logic.
   Game()
     : mWindow(nullptr),
-    mRenderer(nullptr),
-    mTextureSprites(nullptr)
+    mRenderer(nullptr)
   {
   }
 
@@ -25,24 +20,18 @@ public:
   void loop();  // game loop
 private:
   void free();
-  void loadMedia();
 
   // rendering state
   SDL_Event mEvent;
   SDL_Window *mWindow;
   SDL_Renderer *mRenderer;
-  Wrapped_SDL_Texture *mTextureSprites;
-
-  // sprites data
-  static const char *SPRITES_PATH;
-  constexpr static int SPRITES_TOTAL_SYMBOLS = 8;
-  constexpr static int SPRITES_COLS = 3;
-  SDL_Rect mSpriteRects[SPRITES_TOTAL_SYMBOLS];
-  SDL_Rect mSpriteCols[SPRITES_COLS][SPRITES_TOTAL_SYMBOLS];
-  constexpr static int SPRITE_WIDTH = 111;
-  constexpr static int SPRITE_HEIGHT = 111;
+  SlotMachine *mSlotMachine;
 
   // screen data
   constexpr static int SCREEN_WIDTH = 640;
   constexpr static int SCREEN_HEIGHT = 480;
+
+  // slot machine box
+  constexpr static int SLOT_MACHINE_BOX_HEIGHT = 200;
+  constexpr static int SLOT_MACHINE_BOX_WIDTH = SCREEN_WIDTH - 100;
 };

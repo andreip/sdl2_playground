@@ -1,5 +1,10 @@
 #pragma once
 
+#include <exception>
+#include <memory>
+#include <sstream>
+#include <string>
+
 class GameException: public std::exception {
 private:
   std::string mError;
