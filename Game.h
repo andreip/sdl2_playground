@@ -37,7 +37,7 @@ private:
   static const char *SPRITES_PATH;
   constexpr static int SPRITES_TOTAL_SYMBOLS = 8;
   SDL_Rect mSpriteRects[SPRITES_TOTAL_SYMBOLS];
-  constexpr static int SPRITE_WIDTH = 108;
+  constexpr static int SPRITE_WIDTH = 111;
   constexpr static int SPRITE_HEIGHT = 111;
 
   // screen data

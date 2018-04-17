@@ -47,10 +47,21 @@ void Game::free() {
 
 void Game::loop() {
   bool quit = false;
+  int row = 0;
+
   while (!quit) {
     while (SDL_PollEvent(&mEvent)) {
       if (mEvent.type == SDL_QUIT) {
         quit = true;
+      }
+
+      if (mEvent.type == SDL_KEYDOWN) {
+        const Uint8 *state = SDL_GetKeyboardState(nullptr);
+        if (state[SDL_SCANCODE_SPACE]) {
+          std::cout << "pressed spacebar key\n";
+          row = (row + 20) % (SPRITE_HEIGHT * SPRITES_TOTAL_SYMBOLS);
+          std::cout << "row is: " << row << "\n";
+        }
       }
     }
 
@@ -58,12 +69,31 @@ void Game::loop() {
     SDL_RenderClear(mRenderer);
 
     // draw slot machine symbols
-    for (double colRatio : {0.2, 0.5, 0.8}) {
+    for (double colRatio : {0.166, 0.5, 0.833}) {
       int x = colRatio * SCREEN_WIDTH - SPRITE_WIDTH / 2;
-      for (int i = 0; i < SPRITES_TOTAL_SYMBOLS; ++i)
-        mTextureSprites->render(x, i * SPRITE_HEIGHT, &mSpriteRects[i]);
+
+      // start from above row and go upwards.
+      int y = row - SPRITE_HEIGHT;
+      int i = SPRITES_TOTAL_SYMBOLS;
+      while (y >= -SPRITE_HEIGHT) {
+        mTextureSprites->render(x, y, &mSpriteRects[--i]);
+        y -= SPRITE_HEIGHT;
+      }
+
+      // draw below the row.
+      y = row, i = -1;
+      while (y < SCREEN_HEIGHT) {
+        mTextureSprites->render(x, y, &mSpriteRects[++i]);
+        y += SPRITE_HEIGHT;
+      }
     }
 
+    // draw  vertical lines between slots
+    SDL_SetRenderDrawColor(mRenderer, 0, 0, 0, 0xFF);
+    SDL_Rect verticalRect1 { SCREEN_WIDTH / 3, 0, 3, SCREEN_HEIGHT };
+    SDL_RenderFillRect(mRenderer, &verticalRect1);
+    SDL_Rect verticalRect2 { SCREEN_WIDTH * 2 / 3, 0, 3, SCREEN_HEIGHT };
+    SDL_RenderFillRect(mRenderer, &verticalRect2);
     // draw mid line
     SDL_SetRenderDrawColor(mRenderer, 0xFF, 0, 0, 0xFF);
     SDL_RenderDrawLine(mRenderer, 0, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT / 2);
