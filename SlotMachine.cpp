@@ -1,4 +1,5 @@
 #include <random>
+#include <iostream>
 #include <SDL2/SDL.h>
 
 #include "SlotMachine.h"
@@ -13,8 +14,7 @@ SlotMachine::SlotMachine(SDL_Renderer *renderer,
   mX(x),
   mY(y),
   mWidth(width),
-  mHeight(height),
-  mRow(0)
+  mHeight(height)
 {
   mTextureSprites = Wrapped_SDL_Texture::fromPath(SPRITES_PATH, mRenderer);
 
@@ -22,8 +22,10 @@ SlotMachine::SlotMachine(SDL_Renderer *renderer,
     mSpriteRects[i] = {i * SPRITE_WIDTH, 0, SPRITE_WIDTH, SPRITE_HEIGHT};
   }
 
-  for (int i = 0; i < COLUMNS; ++i)
+  for (int i = 0; i < COLUMNS; ++i) {
     mRunning[i] = false;
+    mRows[i] = 0;
+  }
 }
 
 SlotMachine::~SlotMachine()
@@ -41,7 +43,7 @@ void SlotMachine::render()
     int colX = mX + COLUMN_RATIOS[i] * mWidth - SPRITE_WIDTH / 2;
 
     // start from above row and go upwards.
-    int colY = midVertical + mRow - SPRITE_HEIGHT;
+    int colY = midVertical + mRows[i] - SPRITE_HEIGHT;
     int j = SPRITES_TOTAL_SYMBOLS;
     while (colY >= mY - SPRITE_HEIGHT) {
       mTextureSprites->render(colX, colY, &mSpriteRects[--j]);
@@ -49,7 +51,7 @@ void SlotMachine::render()
     }
 
     // draw below the row.
-    colY = midVertical + mRow;
+    colY = midVertical + mRows[i];
     j = -1;
     while (colY < mY + mHeight) {
       mTextureSprites->render(colX, colY, &mSpriteRects[++j]);
@@ -77,6 +79,10 @@ void SlotMachine::render()
 }
 
 void SlotMachine::start() {
+  // can't restart until it's stopped.
+  if (running())
+    return;
+
   for (int i = 0; i < COLUMNS; ++i)
     mRunning[i] = true;
 }
@@ -93,7 +99,7 @@ double SlotMachine::getRandomDouble() {
 bool SlotMachine::running() {
   bool isRunning = atLeastOneRunning();
 
-  if (isRunning && getRandomDouble() < 0.05) {
+  if (isRunning && getRandomDouble() < 0.03) {
     stopLeftmostSpin();
     isRunning = atLeastOneRunning();
   }
@@ -102,19 +108,35 @@ bool SlotMachine::running() {
 }
 
 void SlotMachine::advance() {
-  mRow = (mRow + SPRITES_TOTAL_SYMBOLS) % (SPRITE_HEIGHT * SPRITES_TOTAL_SYMBOLS);
+  for (int i = 0; i < COLUMNS; ++i)
+    if (running(i))
+      mRows[i] = (mRows[i] + SPRITES_TOTAL_SYMBOLS) % (SPRITE_HEIGHT * SPRITES_TOTAL_SYMBOLS);
 }
 
 bool SlotMachine::atLeastOneRunning() {
   for (int i = 0; i < COLUMNS; ++i)
-    if (mRunning[i])
+    if (running(i))
       return true;
   return false;
 }
 
+bool SlotMachine::running(int column) {
+  // 112 is "adjusted to work here" since we're incrementing each row
+  // by 8, and 112 is divisible and very close to 111, which is the
+  // vertical length of each sprite. So if this happens (because
+  // a sprite is vertically alligned at the beginning), it means a
+  // sprite is vertically alligned on the screen and we can stop.
+  bool notVerticallyAllignedSprite = mRows[column] % 112 != 0;
+  // run until it's vertically aligned, even if it's stopped.
+  return mRunning[column] || notVerticallyAllignedSprite;
+}
+
 void SlotMachine::stopLeftmostSpin() {
   for (int i = 0; i < COLUMNS; ++i) {
-    if (mRunning[i]) {
+    // use running(i) here to only stop a next column after a previous
+    // one has stopped completely, to avoid having a right sprite
+    // actually stop before a left one.
+    if (running(i)) {
       mRunning[i] = false;
       return;
     }

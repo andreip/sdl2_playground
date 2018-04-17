@@ -17,14 +17,16 @@ public:
   void advance();
 private:
   double getRandomDouble();
-  void stopLeftmostSpin();
   bool atLeastOneRunning();
+  bool running(int column);
+  void stopLeftmostSpin();
 private:
   static constexpr int COLUMNS = 3;
   Wrapped_SDL_Texture *mTextureSprites;
   SDL_Renderer *mRenderer;
   int mX, mY, mWidth, mHeight;
-  int mRow;
+  // keep account of where we draw each column.
+  int mRows[COLUMNS];
   bool mRunning[COLUMNS];
 
   static const double COLUMN_RATIOS[COLUMNS];
