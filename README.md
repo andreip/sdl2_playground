@@ -9,4 +9,8 @@ $ make
 $ ./a.out
 ```
 
-And then hit "space" to make the slot machine run.
+And then hit "space" to make the slot machine run. Has a nice sound when you win. Just try and see :).
+
+Here's a preview:
+
+![preview](data/preview.png)
