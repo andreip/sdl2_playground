@@ -8,7 +8,8 @@
 
 const char* SlotMachine::SPRITES_PATH = "data/slot_machine_sprites.png";
 const double SlotMachine::COLUMN_RATIOS[COLUMNS] = {0.166, 0.5, 0.833};
-const char* SlotMachine::SOUND_PATH = "data/low.wav";
+const char* SlotMachine::SOUND_COLUMN_STOP_PATH = "data/low.wav";
+const char* SlotMachine::SOUND_WINNER_PATH = "data/beat.wav";
 
 SlotMachine::SlotMachine(SDL_Renderer *renderer,
                          int x, int y, int width, int height)
@@ -30,12 +31,12 @@ SlotMachine::SlotMachine(SDL_Renderer *renderer,
     mRows[i] = 0;
   }
 
-  mSounds[SOUND_COLUMN_STOP] = Mix_LoadWAV(SOUND_PATH);
+  mSounds[SOUND_COLUMN_STOP] = Mix_LoadWAV(SOUND_COLUMN_STOP_PATH);
   if (!mSounds[SOUND_COLUMN_STOP])
-    throw GameException("Couldn't load image", SOUND_PATH);
-  mSounds[SOUND_WINNER] = Mix_LoadWAV("data/beat.wav");
+    throw SlotMachineException("Couldn't load sound", SOUND_COLUMN_STOP_PATH);
+  mSounds[SOUND_WINNER] = Mix_LoadWAV(SOUND_WINNER_PATH);
   if (!mSounds[SOUND_WINNER])
-    throw GameException("Couldn't load image", "data/beat.wav");
+    throw SlotMachineException("Couldn't load sound", SOUND_WINNER_PATH);
 }
 
 SlotMachine::~SlotMachine()

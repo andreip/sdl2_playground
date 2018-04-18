@@ -45,7 +45,8 @@ private:
 
   // sound related
   Mix_Chunk *mSounds[SOUND_TOTAL];
-  static const char *SOUND_PATH;
+  static const char* SOUND_COLUMN_STOP_PATH;
+  static const char* SOUND_WINNER_PATH;
 
   static const double COLUMN_RATIOS[COLUMNS];
   // sprites data

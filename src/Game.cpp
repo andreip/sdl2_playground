@@ -41,9 +41,10 @@ void Game::init() {
       SLOT_MACHINE_WIDTH,
       SLOT_MACHINE_HEIGHT
     );
-
+  } catch (SlotMachineException &e) {
+    mSlotMachine = nullptr;  // since new failed, there's nothing to free?
+    throw;
   } catch (GameException &e) {
-    free();
     throw;
   }
 }
