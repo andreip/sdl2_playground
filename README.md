@@ -3,7 +3,17 @@ Slot machine
 
 Slot machine game using [SDL2](https://www.libsdl.org/).
 
-Run:
+Install
+---
+```bash
+# if on linux I think these should work
+$ apt-get install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev
+# if OSX
+$ brew install SDL2 SDL2_image SDL2_mixer
+```
+
+Run
+---
 ```bash
 $ make
 $ ./a.out
